@@ -25,17 +25,22 @@ import static pl.kulbat.monitorowaniejednostekmorskich.service.IconUtils.getDefa
 @RequiredArgsConstructor
 public class PositionService {
 
-    private static final String POSITIONS_URL = "https://www.barentswatch.no/bwapi/v2/geodata/ais/openpositions?Xmin=10.09094&Xmax=10.67047&Ymin=63.3989&Ymax=63.58645";
+    private static final Double XMIN = 10.09094;
+    private static final Double XMAX = 10.67047;
+    private static final Double YMIN = 63.39894;
+    private static final Double YMAX = 63.58645;
+    private static final String POSITIONS_URL = "https://www.barentswatch.no/bwapi/v2/geodata/ais/openpositions?";
     private static final String GEOCODING_URL = "http://api.positionstack.com/v1/forward?access_key=1c28dd66fdeca61da2b6a574ebfa8919&query=";
     private final RestTemplate restTemplate = new RestTemplate();
     private final TokenService tokenService;
 
     public List<Ship> getShips() {
+        final String finalPositionUrl = POSITIONS_URL + "Xmin=" + XMIN + "&Xmax=" + XMAX + "&Ymin=" + YMIN + "&Ymax=" + YMAX;
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization", "Bearer " + tokenService.getAccessToken());
         HttpEntity httpEntity = new HttpEntity(httpHeaders);
 
-        ResponseEntity<Position[]> positionsResponse = restTemplate.exchange(POSITIONS_URL, HttpMethod.GET, httpEntity, Position[].class);
+        ResponseEntity<Position[]> positionsResponse = restTemplate.exchange(finalPositionUrl, HttpMethod.GET, httpEntity, Position[].class);
         return Stream.of(positionsResponse.getBody()).map(
                 position -> new Ship(position.geometry().coordinates().get(0),
                         position.geometry().coordinates().get(1),
@@ -48,6 +53,9 @@ public class PositionService {
                 )).collect(toList());
     }
 
+    private Polygon getPolygon(){
+        return new Polygon(XMIN, XMAX, YMIN, YMAX);
+    }
 
     private DestinationPoint getDestinationPointByName(final String name) {
         if (StringUtils.hasText(name) && name.length() > 3) {

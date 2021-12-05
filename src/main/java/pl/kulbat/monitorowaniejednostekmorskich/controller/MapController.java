@@ -16,7 +16,8 @@ public class MapController {
 
     @GetMapping
     public String getMap(Model model) {
-        model.addAttribute("points", positionService.getShips());
+        model.addAttribute("ships", positionService.getShips());
+        model.addAttribute("polygon", positionService.getPolygon());
         return "map";
     }
 
