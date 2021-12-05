@@ -26,9 +26,16 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    var points = [[${points}]];
+    var poly = L.polygon([
+        [${polygon.xMin}, 0],
+        [${polygon.xMax}, 0],
+        [${polygon.yMin}, 0],
+        [${polygon.yMax}, 0]
+    ]).addTo(map);
 
-    points.forEach(value => {
+    var ships = [[${ships}]];
+
+    ships.forEach(value => {
         var polygon;
         var shipTypeIcon = L.icon({
            iconUrl: 'shipIcons/' + value.shipType + '.png',
