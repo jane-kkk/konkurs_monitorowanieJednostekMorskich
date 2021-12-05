@@ -1,22 +1,22 @@
-version: '2'
-
+version: '3.7'
 services:
-  app:
-    image: 'docker-spring-boot-postgres:latest'
+  backend:
+    container_name: springApp
+    image: 'konkurs'
     build:
       context: .
-    container_name: app
     depends_on:
-      - db
+      - dbpostgresql
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/konkurs
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dbpostgresql:5432/konkurs
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=create
 
-  db:
-    image: 'postgres:13.1-alpine'
-    container_name: db
+  dbpostgresql:
+    image: postgres:13.1-alpine
+    container_name: dbpostgresql
     environment:
-      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=konkurs
