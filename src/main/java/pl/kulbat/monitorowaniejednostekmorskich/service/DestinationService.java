@@ -12,6 +12,7 @@ import pl.kulbat.monitorowaniejednostekmorskich.service.repository.DestinationEn
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -34,12 +35,12 @@ public class DestinationService {
             if (!data.isEmpty()) {
                 data = data.get(0);
                 return new DestinationPoint(
-                        data.get("latitude").asDouble(),
-                        data.get("longitude").asDouble(),
-                        data.get("name").asText(),
-                        data.get("country").asText(),
-                        data.get("country_code").asText(),
-                        data.get("continent").asText()
+                        data.get("latitude").isNull() ? 0.0: data.get("latitude").asDouble(),
+                        data.get("longitude").isNull() ? 0.0: data.get("longitude").asDouble(),
+                        data.get("name").isNull() ? EMPTY : data.get("name").asText(),
+                        data.get("country").isNull() ? EMPTY: data.get("country").asText(),
+                        data.get("country_code").isNull() ? EMPTY: data.get("country_code").asText(),
+                        data.get("continent").isNull() ? EMPTY: data.get("continent").asText()
                 );
             }
         }

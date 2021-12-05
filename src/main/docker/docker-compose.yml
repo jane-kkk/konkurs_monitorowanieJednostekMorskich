@@ -7,6 +7,8 @@ services:
       context: .
     depends_on:
       - dbpostgresql
+    ports:
+      - "8080:8080"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://dbpostgresql:5432/konkurs
       - SPRING_DATASOURCE_USERNAME=postgres
@@ -15,6 +17,8 @@ services:
 
   dbpostgresql:
     image: postgres:13.1-alpine
+    ports:
+      - "5432:5432"
     container_name: dbpostgresql
     environment:
       - POSTGRES_PASSWORD=postgres
