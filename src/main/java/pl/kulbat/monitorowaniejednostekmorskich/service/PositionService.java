@@ -1,18 +1,21 @@
 package pl.kulbat.monitorowaniejednostekmorskich.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
-import pl.kulbat.monitorowaniejednostekmorskich.model.map.dto.DestinationPoint;
+import pl.kulbat.monitorowaniejednostekmorskich.model.map.ShipEntity;
+import pl.kulbat.monitorowaniejednostekmorskich.model.map.dto.Area;
 import pl.kulbat.monitorowaniejednostekmorskich.model.map.dto.Position;
 import pl.kulbat.monitorowaniejednostekmorskich.model.map.dto.Ship;
+import pl.kulbat.monitorowaniejednostekmorskich.service.mapper.PositionMapper;
+import pl.kulbat.monitorowaniejednostekmorskich.service.repository.DestinationEntityRepository;
+import pl.kulbat.monitorowaniejednostekmorskich.service.repository.ShipEntityRepository;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -25,27 +28,21 @@ import static pl.kulbat.monitorowaniejednostekmorskich.service.IconUtils.getDefa
 @RequiredArgsConstructor
 public class PositionService {
 
-    private static final Double XMIN = 10.09094;
-    private static final Double XMAX = 10.67047;
-    private static final Double YMIN = 63.39894;
-    private static final Double YMAX = 63.58645;
     private static final String POSITIONS_URL = "https://www.barentswatch.no/bwapi/v2/geodata/ais/openpositions?";
-    private static final String GEOCODING_URL = "http://api.positionstack.com/v1/forward?access_key=1c28dd66fdeca61da2b6a574ebfa8919&query=";
     private final RestTemplate restTemplate = new RestTemplate();
     private final TokenService tokenService;
+    private final PositionMapper positionMapper;
+    private final ShipEntityRepository shipRepository;
+    private final DestinationService destinationService;
 
-    public List<Ship> getShips() {
-        final String finalPositionUrl = POSITIONS_URL + "Xmin=" + XMIN + "&Xmax=" + XMAX + "&Ymin=" + YMIN + "&Ymax=" + YMAX;
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Authorization", "Bearer " + tokenService.getAccessToken());
-        HttpEntity httpEntity = new HttpEntity(httpHeaders);
+    public List<Ship> getShips(Area area) {
+        Position[] positionList = getPositionList(area).getBody();
 
-        ResponseEntity<Position[]> positionsResponse = restTemplate.exchange(finalPositionUrl, HttpMethod.GET, httpEntity, Position[].class);
-        return Stream.of(positionsResponse.getBody()).map(
+        return Stream.of(positionList).map(
                 position -> new Ship(position.geometry().coordinates().get(0),
                         position.geometry().coordinates().get(1),
                         position.name(),
-                        getDestinationPointByName(position.destination()),
+                        destinationService.getDestinationPointByName(position.destination()),
                         position.sog(),
                         position.eta(),
                         getStatusById(position.navstat()),
@@ -53,18 +50,24 @@ public class PositionService {
                 )).collect(toList());
     }
 
-    private Polygon getPolygon(){
-        return new Polygon(XMIN, XMAX, YMIN, YMAX);
+    public List<Ship> findShipsByDestinationCountry(String country) {
+        return positionMapper.map(shipRepository.findAllByDestinationCountry(country));
     }
 
-    private DestinationPoint getDestinationPointByName(final String name) {
-        if (StringUtils.hasText(name) && name.length() > 3) {
-            final String finalUrl = GEOCODING_URL + name + "&limit=1";
-            JsonNode data = restTemplate.getForObject(finalUrl, JsonNode.class).get("data");
-            if (!data.isEmpty()) {
-                return new DestinationPoint(data.get(0).get("latitude").asDouble(), data.get(0).get("longitude").asDouble(), data.get(0).get("name").asText());
-            }
-        }
-        return new DestinationPoint(0.0, 0.0, name);
+    public void saveShipsToEntity(Area area) {
+        Position[] positionList = getPositionList(area).getBody();
+        List<ShipEntity> shipEntities = Arrays.stream(positionList)
+                .map(position -> positionMapper.map(position, destinationService.getDestinationPointByName(position.name())))
+                .collect(toList());
+        shipRepository.saveAll(shipEntities);
+    }
+
+    private ResponseEntity<Position[]> getPositionList(Area area) {
+        final String finalPositionUrl = POSITIONS_URL + "Xmin=" + area.xMin() + "&Xmax=" + area.xMax() + "&Ymin=" + area.yMin() + "&Ymax=" + area.yMax();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Authorization", "Bearer " + tokenService.getAccessToken());
+        HttpEntity httpEntity = new HttpEntity(httpHeaders);
+
+        return restTemplate.exchange(finalPositionUrl, HttpMethod.GET, httpEntity, Position[].class);
     }
 }

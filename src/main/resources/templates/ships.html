@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <table>
+        <thead>
+        <tr>
+            <th> Name </th>
+            <th> Ship Type </th>
+            <th> Destination point </th>
+            <th> Country </th>
+            <th> Country code </th>
+            <th> Continent </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${ships.empty}">
+            <td colspan="2"> No ships available </td>
+        </tr>
+        <tr th:each="ship : ${ships}">
+            <td><span th:text="${ship.name}"> Name </span></td>
+            <td><span th:text="${ship.shipType}"> Ship Type </span></td>
+            <td><span th:text="${ship.destinationPoint.name}"> Destination point </span></td>
+            <td><span th:text="${ship.destinationPoint.country}"> Country </span></td>
+            <td><span th:text="${ship.destinationPoint.countryCode}"> Country code </span></td>
+            <td><span th:text="${ship.destinationPoint.continent}"> Continent </span></td>
+
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</head>
+<body>
+
+</body>
+</html>

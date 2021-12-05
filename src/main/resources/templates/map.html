@@ -12,6 +12,25 @@
             integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
             crossorigin=""></script>
 
+    <form th:action="@{/}" th:object="${area}">
+        <input id="xmin" placeholder="Podaj minimalną szerokość:" type="text" th:field="*{xMin}"/>
+        <input id="xmax" placeholder="Podaj maksymalną szerokość:" type="text" th:field="*{xMax}"/>
+        <input id="ymin" placeholder="Podaj minimalną wysokość:" type="text" th:field="*{yMin}"/>
+        <input id="ymax" placeholder="Podaj maksymalną wysokość:" type="text" th:field="*{yMax}"/>
+        <input type="submit" name="action" value="Ustaw współrzędne"/>
+
+    </form>
+
+    <form th:action="@{/}" th:object="${area}" method="post">
+        <input type="hidden" th:field="*{xMin}"/>
+        <input type="hidden" th:field="*{xMax}"/>
+        <input type="hidden" th:field="*{yMin}"/>
+        <input type="hidden" th:field="*{yMax}"/>
+        <input type="submit" name="action" value="Zapisz statki"/>
+    </form>
+
+    <a href="/destinationCountries">Zapisane statki</a>
+
     <style>#map { height: 1080px; }</style>
 </head>
 <body>
@@ -20,17 +39,16 @@
 
 <script th:inline="javascript">
 
-    var map = L.map('map').setView([52.95, 19.23], 13);
+    var map = L.map('map').setView([52.95, 19.23], 10);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    var poly = L.polygon([
-        [${polygon.xMin}, 0],
-        [${polygon.xMax}, 0],
-        [${polygon.yMin}, 0],
-        [${polygon.yMax}, 0]
+    var area = [[${area}]]
+        L.rectangle([
+        [area.xMin, area.yMin],
+        [area.xMax, area.yMax]
     ]).addTo(map);
 
     var ships = [[${ships}]];

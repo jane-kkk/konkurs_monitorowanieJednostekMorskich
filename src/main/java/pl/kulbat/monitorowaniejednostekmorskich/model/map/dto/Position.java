@@ -10,7 +10,7 @@ public record Position(
         Geometry geometry,
         Integer shipType,
         String name,
-        Object imo,
+        String imo,
         String callsign,
         String country,
         String eta,

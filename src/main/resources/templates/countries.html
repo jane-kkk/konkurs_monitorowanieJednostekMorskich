@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <table>
+        <thead>
+        <tr>
+            <th> Country </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${countries.empty}">
+            <td colspan="2"> No countries available </td>
+        </tr>
+        <tr th:each="country : ${countries}">
+            <td><a th:href="@{/ships(country=${country})}"><span th:text="${country}"> Country </span></a></td>
+        </tr>
+        </tbody>
+    </table>
+</head>
+<body>
+
+</body>
+</html>
